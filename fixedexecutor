@@ -1,0 +1,110 @@
+local UserInputService = game:GetService('UserInputService')
+
+-- tworzenie gui
+local ScreenGui = Instance.new('ScreenGui')
+local ExecutorFrame = Instance.new('Frame')
+local ExecuteButton = Instance.new('TextButton')
+local ClearButton = Instance.new('TextButton')
+local ScriptBox = Instance.new('TextBox')
+
+-- screen gui config
+ScreenGui.Name = 'CustomExecutorGUI'
+ScreenGui.Parent = game.CoreGui
+
+-- executor frame config
+ExecutorFrame.Name = 'MainFrame'
+ExecutorFrame.Parent = ScreenGui
+ExecutorFrame.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
+ExecutorFrame.BorderSizePixel = 0
+ExecutorFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+ExecutorFrame.Size = UDim2.new(0, 300, 0, 200)
+
+-- script box config
+ScriptBox.Name = 'ScriptBox'
+ScriptBox.Parent = ExecutorFrame
+ScriptBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+ScriptBox.BorderSizePixel = 0
+ScriptBox.Position = UDim2.new(0, 5, 0, 5)
+ScriptBox.Size = UDim2.new(0, 290, 0, 150)
+ScriptBox.Font = Enum.Font.Code
+ScriptBox.Text = ''
+ScriptBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+ScriptBox.TextSize = 14
+ScriptBox.TextXAlignment = Enum.TextXAlignment.Left
+ScriptBox.TextYAlignment = Enum.TextYAlignment.Top
+
+-- execute button config
+ExecuteButton.Name = 'ExecuteButton'
+ExecuteButton.Parent = ExecutorFrame
+ExecuteButton.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+ExecuteButton.BorderSizePixel = 0
+ExecuteButton.Position = UDim2.new(0, 5, 0, 160)
+ExecuteButton.Size = UDim2.new(0, 145, 0, 35)
+ExecuteButton.Font = Enum.Font.SourceSans
+ExecuteButton.Text = 'Execute'
+ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ExecuteButton.TextSize = 18
+
+-- clear button config
+ClearButton.Name = 'ClearButton'
+ClearButton.Parent = ExecutorFrame
+ClearButton.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+ClearButton.BorderSizePixel = 0
+ClearButton.Position = UDim2.new(0, 155, 0, 160)
+ClearButton.Size = UDim2.new(0, 140, 0, 35)
+ClearButton.Font = Enum.Font.SourceSans
+ClearButton.Text = 'Clear'
+ClearButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ClearButton.TextSize = 18
+
+-- button functionality
+ExecuteButton.MouseButton1Click:Connect(function()
+    local script = ScriptBox.Text
+    local func = loadstring(script)
+    if func then
+        func()
+    end
+end)
+
+ClearButton.MouseButton1Click:Connect(function()
+    ScriptBox.Text = ''
+end)
+
+-- draggable functionality
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    ExecutorFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+ExecutorFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = ExecutorFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+ExecutorFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+game.Players.LocalPlayer.PlayerGui:WaitForChild('CustomExecutorGUI').Enabled = true
